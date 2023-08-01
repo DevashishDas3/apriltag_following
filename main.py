@@ -1,6 +1,6 @@
 from threading import Thread, Event
 from time import sleep
-
+import cv2
 from pid import PID
 from video import Video
 from bluerov_interface import BlueROV
@@ -24,6 +24,7 @@ frame = None
 frame_available = Event()
 frame_available.set()
 
+
 vertical_power = 0
 lateral_power = 0
 
@@ -42,8 +43,8 @@ def _get_frame():
                 x_pow, y_pow= before.apriltag_detect(frame,pid_horizontal,pid_vertical)
 
                 # TODO: set vertical_power and lateral_power here
-                bluerov.set_lateral_power(x_pow)
-                bluerov.set_vertical_power(y_pow)
+                vertical_power = y_pow
+                lateral_power = x_pow
                 _send_rc()
                 print(frame.shape)
     except KeyboardInterrupt:
