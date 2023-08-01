@@ -6,8 +6,9 @@ from video import Video
 from bluerov_interface import BlueROV
 from pymavlink import mavutil
 
-# TODO: import your processing functions
 
+# TODO: import your processing functions
+import before
 
 # Create the video object
 video = Video()
@@ -38,7 +39,12 @@ def _get_frame():
             if video.frame_available():
                 frame = video.frame()
                 # TODO: Add frame processing here
+                x_pow, y_pow= before.apriltag_detect(frame,pid_horizontal,pid_vertical)
+
                 # TODO: set vertical_power and lateral_power here
+                bluerov.set_lateral_power(x_pow)
+                bluerov.set_vertical_power(y_pow)
+                _send_rc()
                 print(frame.shape)
     except KeyboardInterrupt:
         return
@@ -61,6 +67,9 @@ rc_thread.start()
 try:
     while True:
         mav_comn.wait_heartbeat()
+        _get_frame()
+        before.april_test(frame, pid_horizontal, pid_vertical)
+
 except KeyboardInterrupt:
     video_thread.join()
     rc_thread.join()
