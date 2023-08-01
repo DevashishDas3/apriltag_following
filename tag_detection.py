@@ -5,36 +5,6 @@ import numpy as np
 from pid import *
 import numpy as np
 from math import isclose
-#if u need it
-# def draw_line_to_april_tag(camera_center, april_tag_center):
-#     # Unpack the coordinates of the camera and AprilTag centers
-#     cam_x, cam_y = camera_center
-#     tag_x, tag_y = april_tag_center
-
-#     # Create a plot
-#     plt.figure()
-
-#     # Draw the camera center point
-#     plt.scatter(cam_x, cam_y, color='red', label='Camera Center')
-
-#     # Draw the AprilTag center point
-#     plt.scatter(tag_x, tag_y, color='blue', label='AprilTag Center')
-
-#     # Draw the line connecting the camera center to the AprilTag center
-#     plt.plot([cam_x, tag_x], [cam_y, tag_y], 'g--', label='Line to AprilTag')
-
-#     # Set the axis limits to ensure both points are visible
-#     plt.xlim(min(cam_x, tag_x) - 1, max(cam_x, tag_x) + 1)
-#     plt.ylim(min(cam_y, tag_y) - 1, max(cam_y, tag_y) + 1)
-
-#     # Add labels and legend
-#     plt.xlabel('X')
-#     plt.ylabel('Y')
-#     plt.title('Line from Camera Center to AprilTag Center')
-#     plt.legend()
-
-#     # Show the plot
-#     plt.show()
 
 
 def get_video(src="AprilTagTest.mkv"):
@@ -77,7 +47,6 @@ def get_center(img):
 
 def get_distance(point1, point2):
     # returns distance of two points x, y
-    
     return (point1[0] - point2[0]), (point1[1] - point2[1])
 
 def get_distance_from_center(img, point):
@@ -115,13 +84,21 @@ def draw_line_center(img, tag, color=(255,0,0),thickness=10):
 
 def send_PID_control(img, tag, x_pid, y_pid):
     # takes in img, tag (the first tag), two PIDs to send final control signals
-    horizontal_error = tag.center[0] - (img.shape[1]/2)
-    vertical_error = tag.center[1] - (img.shape[0]/2)
+    horizontal_error = tag.center[0] - get_center(img)[0]
+    vertical_error = tag.center[1] - get_center(img)[1]
     
     x_output = x_pid.update(horizontal_error)
     y_output = y_pid.update(vertical_error)
 
     return x_output, y_output
+
+
+
+def interruption(img):
+    while ret:#if key q is pressed interrupt
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
 
     
 def main():
@@ -140,10 +117,16 @@ def main():
             tags = detect_tags(gray)
 
             ##TODO GET DISTANCE FROM CENTER OF APRIL TAG TO CENTER OF CAMERA USING CAMERA RESOLUTION AND APRILTAG LOCATION
-            Total_Distance = np.hypot(get_distance_from_center(gray, tags[0]))
+            Distance_tuple = get_distance_from_center(frame, tags[0])
 
             ##TODO DRAW LINE TO CENTER OF APRIL TAG
             draw_line_center(frame, tags[0])
+
+            ##TODO GET PERCENTAGES FOR EACH COMPONENT
+            percentage_pair = get_percentage(frame,Distance_tuple[0],Distance_tuple[1])
+            
+            ##TODO DRAW COMPONENT LINES AND  THEIR VALUES:
+            
 
             ##TODO PUT X_DISTANCE AND Y_DISTANCE INTO PID AND TAKE OUTPUT
             x_distance, y_distance = get_distance_from_center(frame, tags[0].center)
@@ -151,16 +134,22 @@ def main():
             ##TODO GET THAT OUTPUT AND SEND IT INTO TO MAV CONTROLS
             send_PID_control(frame, tags[0], x_distance, y_distance)
 
+
+
+
             ret, frame= vcap.read()
             
 
         ##TODO MAKE THIS A LOOP USING TRY AND EXCEPT FOR KEYBOARD INTERRUPT
-
+            def interruption(img):
+                pass
+            
         except KeyboardInterrupt:
             print("Closed reader")
 
 
-
+if "__name__" == "__main__":
+    main()
 
 
     
