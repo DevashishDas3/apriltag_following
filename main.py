@@ -28,6 +28,8 @@ frame_available.set()
 vertical_power = 0
 lateral_power = 0
 
+y_pid = PID(0.2, 0.0, 0.0, 100)
+x_pid = PID(0.2, 0.0, 0.0, 100)
 
 def _get_frame():
     global frame
