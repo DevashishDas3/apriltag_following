@@ -92,15 +92,11 @@ def send_PID_control(img, tag, x_pid, y_pid):
 
     return x_output, y_output
 
-
-
 def interruption(img):
     while ret:#if key q is pressed interrupt
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-
-
-    
+   
 def main():
     vcap=get_video("AprilTagTest.mkv")
     ret, frame = vcap.read()
@@ -127,15 +123,12 @@ def main():
             
             ##TODO DRAW COMPONENT LINES AND  THEIR VALUES:
             
-
+            
             ##TODO PUT X_DISTANCE AND Y_DISTANCE INTO PID AND TAKE OUTPUT
             x_distance, y_distance = get_distance_from_center(frame, tags[0].center)
     
             ##TODO GET THAT OUTPUT AND SEND IT INTO TO MAV CONTROLS
             send_PID_control(frame, tags[0], x_distance, y_distance)
-
-
-
 
             ret, frame= vcap.read()
             
