@@ -5,12 +5,12 @@ from pid import PID
 from video import Video
 from bluerov_interface import BlueROV
 from pymavlink import mavutil
+import numpy as np
 
 
 # TODO: import your processing functions
 import tag_detection as td
-
-
+from dt_apriltags import Detector
 
 # Create the video object
 video = Video()
@@ -36,6 +36,7 @@ frame_available.set()
 vertical_power = 0  
 lateral_power = 0  
 
+tagD = td.TD()
 
 ###NOTE
 ###I MOVED THIS FUNCTION UP FROM BELOW GET FRAME BECAUSE SEND RC IS USED IN GET FRAME
@@ -57,22 +58,31 @@ def _get_frame():
         
         while True:
             if video.frame_available():
+                
                 frame = video.frame()
                 # TODO: Add frame processing here
                 
+                if frame is not None:
+                    gray = td.make_gray(frame)
+                    print("finding tag")
+                    tags = tagD.at_detector.detect(gray, True, tagD.camera_params, tag_size  = 0.1) # SHOULD return list of tags, MIGHT be None
+                    # tags = at_detector.detect(gray, True, ) # SHOULD return list of tags, MIGHT be None
 
-                gray = td.make_gray(frame)
-                tags = td.detect_tags(gray)## RETURNS A LIST OF TAGS,-- DETECTION OBJECTS--
-                
-                # TODO: set vertical_power and lateral_power here
-                
-                lateral_power, vertical_power = td.return_PID_values(frame, tags[0], pid_horizontal, pid_vertical)
-               
-                _send_rc()  #Wanted to put in the variables lateral and vertical here, but they are global and SHOULD be accessed
+                    if len(tags) > 0:
+                        pass
+                    print(tags)
+                    
+                    # TODO: set vertical_power and lateral_power here
+                    if len(tags)>0:
+                        lateral_power, vertical_power = td.return_PID_values(frame, tags[0], pid_horizontal, pid_vertical)
+                    else:
+                        lateral_power, vertical_power=(0,0)
+                    #_send_rc()  #Wanted to put in the variables lateral and vertical here, but they are global and SHOULD be accessed
 
 
-                print(f"Lateral Power: {lateral_power}\nVertical Power: {vertical_power} \n it might have moved")
-                print(frame.shape) ## Dr.Saad PUT THIS HERE
+                    print(f"Lateral Power: {lateral_power}\nVertical Power: {vertical_power} \n it might have moved")
+                    print(frame.shape) ## Dr.Saad PUT THIS HERE
+                    
 
 
     except KeyboardInterrupt:
