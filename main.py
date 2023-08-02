@@ -106,7 +106,7 @@ rc_thread.start()
 try:
     while True:
         mav_comn.wait_heartbeat()
-        _get_frame()
+        # _get_frame()
 
 
 except KeyboardInterrupt:
