@@ -10,6 +10,8 @@ from pymavlink import mavutil
 # TODO: import your processing functions
 import tag_detection as td
 
+
+
 # Create the video object
 video = Video()
 # Create the PID object
@@ -33,6 +35,14 @@ y_pid = PID(0.2, 0.0, 0.0, 100)
 x_pid = PID(0.2, 0.0, 0.0, 100)
 
 
+
+def _send_rc():
+    bluerov.set_vertical_power(vertical_power)
+    bluerov.set_lateral_power(lateral_power)
+
+
+
+
 def _get_frame():
     global frame
     while not video.frame_available():
@@ -47,24 +57,33 @@ def _get_frame():
                 # TODO: Add frame processing here
                 
 
+                gray = td.make_gray(frame)
+                tags = td.detect_tags(gray)
+                #x_distance, y_distance = td.get_distance_from_center(frame, tags[0].center)
+
+
                 # TODO: set vertical_power and lateral_power here
                 
-                
-                _send_rc()
+                lateral_power, vertical_power = td.send_PID_control(frame,tags[0],x_pid,y_pid)
+               
+                _send_rc()  #Wanted to put in the variables lateral and vertical here, but they are global and SHOULD be accessed
+
+
+                print(f"Lateral Power: {lateral_power}\nVertical Power: {vertical_power} \n it might have moved")
                 print(frame.shape)
+
 
     except KeyboardInterrupt:
         return
 
 
-def _send_rc():
-    bluerov.set_vertical_power(vertical_power)
-    bluerov.set_lateral_power(lateral_power)
 
 
 # Start the video thread
 video_thread = Thread(target=_get_frame)
 video_thread.start()
+
+
 
 # Start the RC thread
 rc_thread = Thread(target=_send_rc)
@@ -73,14 +92,9 @@ rc_thread.start()
 
 # Main loop
 try:
-    i = 0
     while True:
         mav_comn.wait_heartbeat()
         _get_frame()
-        gray = td.make_gray(frame)
-        tag = td.detect_tags(gray)[i]
-        td.send_PID_control(gray, tag, *td.get_distance_from_center(frame, tag.center))
-        
 
 
 except KeyboardInterrupt:

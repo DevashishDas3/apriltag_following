@@ -33,10 +33,15 @@ def detect_tags(gray):
 
     cameraMatrix = np.array([ 1060.71, 0, 960, 0, 1060.71, 540, 0, 0, 1]).reshape((3,3))
     camera_params = ( cameraMatrix[0,0], cameraMatrix[1,1], cameraMatrix[0,2], cameraMatrix[1,2] )
-    tags = at_detector.detect(gray, True, camera_params, tag_size  = 0.1)
+    tags = at_detector.detect(gray, True, camera_params, tag_size  = 0.1) # SHOULD return list of tags, MIGHT be None
+    if tags is not None:
+        return tags
+    else:
+        pass
 
-    
-    return tags
+    #raise ValueError
+
+
 
 def get_center(img):
     # gets the center of image as a tuple 
@@ -92,15 +97,27 @@ def send_PID_control(img, tag, x_pid, y_pid):
 
     return x_output, y_output
 
+
+
+##Arthur Wrote
 def interruption(img):
-    while ret:#if key q is pressed interrupt
+    cv2.imread(img)
+    ret, frame= cv2.read()
+
+    while ret: #if key q is pressed interrupt
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
    
+
+
+
+
 def main():
+
     vcap=get_video("AprilTagTest.mkv")
     ret, frame = vcap.read()
     ##Need to fix the while ret to make
+    
     while ret:
         try:
             ##TODO GET IMAGE FROM VIDEO USING GET FRAME
@@ -142,7 +159,8 @@ def main():
 
 
 if "__name__" == "__main__":
-    main()
+    #main()
+    pass
 
 
     
