@@ -2,7 +2,7 @@ from dt_apriltags import Detector
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-from pid import *
+import pid
 import numpy as np
 from math import isclose
 
@@ -34,12 +34,29 @@ def detect_tags(gray):
     cameraMatrix = np.array([ 1060.71, 0, 960, 0, 1060.71, 540, 0, 0, 1]).reshape((3,3))
     camera_params = ( cameraMatrix[0,0], cameraMatrix[1,1], cameraMatrix[0,2], cameraMatrix[1,2] )
     tags = at_detector.detect(gray, True, camera_params, tag_size  = 0.1) # SHOULD return list of tags, MIGHT be None
+
+    ##NOTE
+    ##TAGS IS RETURNED AS A LIST OF DETECTION OBJECTS
+    ##EACH DETECTION OBJECT HAS MEMBER VARIABLES LIKE CENTER, CORNERS, AND SO ON
+    ##TO GRAB THE CENTER WE NEED TO USE, tags[0] WHICH GRABS THE FIRST TAG THAT IS SEEN IN TAGS
+    ##THEN ONTO THAT WE ADD .Center WHICH GETS THE CENTER MEMBER VARIABLE OF THAT DETECTION OBJECT
+    ##THAT COMES OUT AS A NP ARRAY, SO IF WE WANT TO USE EACH VALUE IN THAT CENTER ARRAY, IT MIGHT BE EASIER TO DO .tolist()
+    ##NOTE
+    
     if tags is not None:
         return tags
     else:
         pass
 
     #raise ValueError
+
+
+def get_centers_from_tags(tags):
+    center_list=[]
+    for tag in tags:
+        center_list.append(tag.center.tolist())
+    return(center_list)
+
 
 
 
@@ -87,13 +104,13 @@ def draw_line_center(img, tag, color=(255,0,0),thickness=10):
     
     #cv2.line(img, tuple(map(int, tag.center)), tuple(map(int, np.array(img.shape[1::-1])/2)), (255, 0, 0), 3)
 
-def send_PID_control(img, tag, x_pid, y_pid):
+def return_PID_values(img, tag, pid_horizontal: pid.PID, pid_vertical: pid.PID):
     # takes in img, tag (the first tag), two PIDs to send final control signals
     horizontal_error = tag.center[0] - get_center(img)[0]
     vertical_error = tag.center[1] - get_center(img)[1]
     
-    x_output = x_pid.update(horizontal_error)
-    y_output = y_pid.update(vertical_error)
+    x_output = pid_horizontal.update(horizontal_error)
+    y_output = pid_vertical.update(vertical_error)
 
     return x_output, y_output
 
@@ -116,7 +133,8 @@ def main():
 
     vcap=get_video("AprilTagTest.mkv")
     ret, frame = vcap.read()
-    ##Need to fix the while ret to make
+
+    ##Need to fix the while ret to make it work
     
     while ret:
         try:
@@ -130,37 +148,44 @@ def main():
             tags = detect_tags(gray)
 
             ##TODO GET DISTANCE FROM CENTER OF APRIL TAG TO CENTER OF CAMERA USING CAMERA RESOLUTION AND APRILTAG LOCATION
-            Distance_tuple = get_distance_from_center(frame, tags[0])
+            distance_tuple = get_distance_from_center(frame, tags[0])  ##ERROR IS THAT IT TAKES IN DETECTION OBJECTS RATHER THAN POINTS FOR GET DISTANCE
 
             ##TODO DRAW LINE TO CENTER OF APRIL TAG
             draw_line_center(frame, tags[0])
 
             ##TODO GET PERCENTAGES FOR EACH COMPONENT
-            percentage_pair = get_percentage(frame,Distance_tuple[0],Distance_tuple[1])
+            percentage_pair = get_percentage(frame,distance_tuple[0],distance_tuple[1])
             
             ##TODO DRAW COMPONENT LINES AND  THEIR VALUES:
             
+
+            ##TODO GET X AND Y VALUES
             
             ##TODO PUT X_DISTANCE AND Y_DISTANCE INTO PID AND TAKE OUTPUT
-            x_distance, y_distance = get_distance_from_center(frame, tags[0].center)
+            tag_list = detect_tags(gray)
+            center_list = get_centers_from_tags(tag_list)
+            x_distance, y_distance = get_distance_from_center(frame, center_list[0])
     
             ##TODO GET THAT OUTPUT AND SEND IT INTO TO MAV CONTROLS
-            send_PID_control(frame, tags[0], x_distance, y_distance)
 
+            lateral_power, vertical_power = send_PID_control(frame, tags[0], x_distance, y_distance) #WRONG CODE SUCKS ASS
+
+
+
+            print(f"Lateral Power: {lateral_power}\nVertical Power: {vertical_power} \n it might have moved")
+            
             ret, frame= vcap.read()
             
 
         ##TODO MAKE THIS A LOOP USING TRY AND EXCEPT FOR KEYBOARD INTERRUPT
-            def interruption(img):
-                pass
-            
+
         except KeyboardInterrupt:
             print("Closed reader")
+            
 
 
-if "__name__" == "__main__":
-    #main()
-    pass
+if __name__ == "__main__":
+    main()
 
 
     

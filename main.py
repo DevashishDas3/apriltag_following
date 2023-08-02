@@ -14,6 +14,12 @@ import tag_detection as td
 
 # Create the video object
 video = Video()
+
+#video = cv2.VideoCapture("AprilTagTest.mkv")
+
+
+
+
 # Create the PID object
 pid_vertical = PID(K_p=0.1, K_i=0.0, K_d=0.01, integral_limit=1)
 pid_horizontal = PID(K_p=0.1, K_i=0.0, K_d=0.01, integral_limit=1)
@@ -27,14 +33,12 @@ frame_available = Event()
 frame_available.set()
 
 
-vertical_power = 0
-lateral_power = 0
+vertical_power = 0  
+lateral_power = 0  
 
 
-y_pid = PID(0.2, 0.0, 0.0, 100)
-x_pid = PID(0.2, 0.0, 0.0, 100)
-
-
+###NOTE
+###I MOVED THIS FUNCTION UP FROM BELOW GET FRAME BECAUSE SEND RC IS USED IN GET FRAME
 
 def _send_rc():
     bluerov.set_vertical_power(vertical_power)
@@ -42,9 +46,9 @@ def _send_rc():
 
 
 
-
 def _get_frame():
     global frame
+
     while not video.frame_available():
         print("Waiting for frame...")
         sleep(0.01)
@@ -58,19 +62,17 @@ def _get_frame():
                 
 
                 gray = td.make_gray(frame)
-                tags = td.detect_tags(gray)
-                #x_distance, y_distance = td.get_distance_from_center(frame, tags[0].center)
-
-
+                tags = td.detect_tags(gray)## RETURNS A LIST OF TAGS,-- DETECTION OBJECTS--
+                
                 # TODO: set vertical_power and lateral_power here
                 
-                lateral_power, vertical_power = td.send_PID_control(frame,tags[0],x_pid,y_pid)
+                lateral_power, vertical_power = td.return_PID_values(frame, tags[0], pid_horizontal, pid_vertical)
                
                 _send_rc()  #Wanted to put in the variables lateral and vertical here, but they are global and SHOULD be accessed
 
 
                 print(f"Lateral Power: {lateral_power}\nVertical Power: {vertical_power} \n it might have moved")
-                print(frame.shape)
+                print(frame.shape) ## Dr.Saad PUT THIS HERE
 
 
     except KeyboardInterrupt:
