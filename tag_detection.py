@@ -19,6 +19,7 @@ class TD:
 
         self.cameraMatrix = np.array([ 1060.71, 0, 960, 0, 1060.71, 540, 0, 0, 1]).reshape((3,3))
         self.camera_params = ( self.cameraMatrix[0,0], self.cameraMatrix[1,1], self.cameraMatrix[0,2], self.cameraMatrix[1,2] )
+        #self.img=img
 
     def detect_tags(self, img):
         return self.at_detector.detect(img, True, self.camera_params, tag_size  = 0.1)

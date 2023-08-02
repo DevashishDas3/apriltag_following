@@ -44,7 +44,9 @@ def _send_rc():
     bluerov.set_vertical_power(vertical_power)
     bluerov.set_lateral_power(lateral_power)
 
-
+###NOTE
+###Unknown mode MANUAL
+### waits for frame, looks for tag
 
 def _get_frame():
     global frame
