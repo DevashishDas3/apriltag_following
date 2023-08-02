@@ -20,8 +20,9 @@ video = Video()
 
 
 # Create the PID object
-pid_vertical = PID(K_p=0.1, K_i=0.0, K_d=0.01, integral_limit=1)
-pid_horizontal = PID(K_p=0.1, K_i=0.0, K_d=0.01, integral_limit=1)
+pid_vertical = PID(K_p=.2, K_i=0.0, K_d=0, integral_limit=1)
+pid_horizontal = PID(K_p=.2, K_i=0.0, K_d=0, integral_limit=1)
+
 # Create the mavlink connection
 mav_comn = mavutil.mavlink_connection("udpin:0.0.0.0:14550")
 # Create the BlueROV object
@@ -41,25 +42,34 @@ tagD = td.TD()
 ###I MOVED THIS FUNCTION UP FROM BELOW GET FRAME BECAUSE SEND RC IS USED IN GET FRAME
 
 def _send_rc():
-    bluerov.set_vertical_power(vertical_power)
-    bluerov.set_lateral_power(lateral_power)
+    global vertical_power, lateral_power
+    bluerov.set_rc_channels_to_neutral()
+    bluerov.set_rc_channel(9, 1100)
+    mav_comn.wait_heartbeat()
+    try:
+        while True:
+            bluerov.arm()
+            mav_comn.wait_heartbeat()
+            bluerov.set_vertical_power(int(vertical_power))
+            bluerov.set_lateral_power(int(lateral_power))
+            sleep(0.2)
+    except Exception as e:
+        print(e)
 
 ###NOTE
 ###Unknown mode MANUAL
 ### waits for frame, looks for tag
 
 def _get_frame():
-    global frame
+    global frame, vertical_power, lateral_power
 
     while not video.frame_available():
         print("Waiting for frame...")
         sleep(0.01)
 
-    try:
-        
+    try: 
         while True:
             if video.frame_available():
-                
                 frame = video.frame()
                 # TODO: Add frame processing here
                 
@@ -67,9 +77,7 @@ def _get_frame():
                     gray = tagD.make_gray(frame)
                     print("finding tag")
                     tags = tagD.detect_tags(gray) # SHOULD return list of tags, MIGHT be None
-                    # tags = at_detector.detect(gray, True, ) # SHOULD return list of tags, MIGHT be None
-
-                  
+                    # tags = at_detector.detect(gray, True, ) # SHOULD return list of tags, MIGHT be None 
                     #print(tags)
                     
                     # TODO: set vertical_power and lateral_power here
@@ -77,9 +85,7 @@ def _get_frame():
                         lateral_power, vertical_power = tagD.return_PID_values(frame, tags[0], pid_horizontal, pid_vertical)
                     else:
                         lateral_power, vertical_power=(0,0)
-                    #_send_rc()  #Wanted to put in the variables lateral and vertical here, but they are global and SHOULD be accessed
-
-
+                    # _send_rc()  #Wanted to put in the variables lateral and vertical here, but they are global and SHOULD be accessed
                     print(f"Lateral Power: {lateral_power}\nVertical Power: {vertical_power} \n it might have moved")
                     print(frame.shape) ## Dr.Saad PUT THIS HERE
                     
