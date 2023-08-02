@@ -63,9 +63,9 @@ def _get_frame():
                 # TODO: Add frame processing here
                 
                 if frame is not None:
-                    gray = td.make_gray(frame)
+                    gray = td.TD.make_gray(frame)
                     print("finding tag")
-                    tags = tagD.at_detector.detect(gray, True, tagD.camera_params, tag_size  = 0.1) # SHOULD return list of tags, MIGHT be None
+                    tags = tagD.detect_tags(gray) # SHOULD return list of tags, MIGHT be None
                     # tags = at_detector.detect(gray, True, ) # SHOULD return list of tags, MIGHT be None
 
                     if len(tags) > 0:
@@ -74,7 +74,7 @@ def _get_frame():
                     
                     # TODO: set vertical_power and lateral_power here
                     if len(tags)>0:
-                        lateral_power, vertical_power = td.return_PID_values(frame, tags[0], pid_horizontal, pid_vertical)
+                        lateral_power, vertical_power = td.TD.return_PID_values(frame, tags[0], pid_horizontal, pid_vertical)
                     else:
                         lateral_power, vertical_power=(0,0)
                     #_send_rc()  #Wanted to put in the variables lateral and vertical here, but they are global and SHOULD be accessed

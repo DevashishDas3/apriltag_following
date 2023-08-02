@@ -20,6 +20,8 @@ class TD:
         self.cameraMatrix = np.array([ 1060.71, 0, 960, 0, 1060.71, 540, 0, 0, 1]).reshape((3,3))
         self.camera_params = ( self.cameraMatrix[0,0], self.cameraMatrix[1,1], self.cameraMatrix[0,2], self.cameraMatrix[1,2] )
 
+    def detect_tags(self, img):
+        return self.at_detector.detect(img, True, self.camera_params, tag_size  = 0.1)
 
     def get_video(src="AprilTagTest.mkv"):
         vcap=cv2.VideoCapture(src)
@@ -79,8 +81,8 @@ class TD:
         # returns distance of two points x, y
         return (point1[0] - point2[0]), (point1[1] - point2[1])
 
-    def get_distance_from_center(img, point):
-        return get_distance(point, get_center(img))
+    def get_distance_from_center(self, img, point):
+        return self.get_distance(point, self.get_center(img))
 
     def get_percentage(img, H_d, V_d):
         
@@ -105,17 +107,17 @@ class TD:
         halfimg = img[img.shape[0]/2:img.shape[1]]
         return halfimg
 
-    def draw_line_center(img, tag, color=(255,0,0),thickness=10):
+    def draw_line_center(self, img, tag, color=(255,0,0),thickness=10):
         #draws line from center to tag
-        center=get_center(img)
+        center= self.get_center(img)
         cv2.draw_line(img,center, tuple(map(int(tag.center))),color,thickness)
         
         #cv2.line(img, tuple(map(int, tag.center)), tuple(map(int, np.array(img.shape[1::-1])/2)), (255, 0, 0), 3)
 
-    def return_PID_values(img, tag, pid_horizontal: pid.PID, pid_vertical: pid.PID):
+    def return_PID_values(self, img, tag, pid_horizontal: pid.PID, pid_vertical: pid.PID):
         # takes in img, tag (the first tag), two PIDs to send final control signals
-        horizontal_error = tag.center[0] - get_center(img)[0]
-        vertical_error = tag.center[1] - get_center(img)[1]
+        horizontal_error = tag.center[0] - self.get_center(img)[0]
+        vertical_error = tag.center[1] - self.get_center(img)[1]
         
         x_output = pid_horizontal.update(horizontal_error)
         y_output = pid_vertical.update(vertical_error)
