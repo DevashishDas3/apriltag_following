@@ -23,16 +23,16 @@ class TD:
     def detect_tags(self, img):
         return self.at_detector.detect(img, True, self.camera_params, tag_size  = 0.1)
 
-    def get_video(src="AprilTagTest.mkv"):
+    def get_video(self, src="AprilTagTest.mkv"):
         vcap=cv2.VideoCapture(src)
         return(vcap)
 
     ### NEEDS TESTING TO SEE IF vcap.read()[1] WORKS
-    def get_frame(vcap):
+    def get_frame(self, vcap):
         frame = vcap.read()[1] #Should return that frame is vcap.read()[1] on the basis that ret,frame = vcap.read() works
         return(frame)
 
-    def make_gray(frame):
+    def make_gray(self, frame):
         gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY) # convert to grayscale
         return gray
 
@@ -61,7 +61,7 @@ class TD:
     #     #raise ValueError
 
 
-    def get_centers_from_tags(tags):
+    def get_centers_from_tags(self, tags):
         center_list=[]
         for tag in tags:
             center_list.append(tag.center.tolist())
@@ -70,25 +70,25 @@ class TD:
 
 
 
-    def get_center(img):
+    def get_center(self, img):
         # gets the center of image as a tuple 
         #or literally "return img.center" lol one line
         vertical = len(img)
         horizontal = len(img[0]) 
         return horizontal/2, vertical/2
 
-    def get_distance(point1, point2):
+    def get_distance(self, point1, point2):
         # returns distance of two points x, y
         return (point1[0] - point2[0]), (point1[1] - point2[1])
 
     def get_distance_from_center(self, img, point):
         return self.get_distance(point, self.get_center(img))
 
-    def get_percentage(img, H_d, V_d):
+    def get_percentage(self, img, H_d, V_d):
         
         return H_d/len(img[0]), V_d/len(img)
         
-    def draw_line(img, lines, color=(255,0,0), thickness=10):
+    def draw_line(self, img, lines, color=(255,0,0), thickness=10):
         # draws line on image
         if lines is None:
                 pass
@@ -102,7 +102,7 @@ class TD:
             
         return(img)
 
-    def half_image(img):
+    def half_image(self, img):
         # returns half image
         halfimg = img[img.shape[0]/2:img.shape[1]]
         return halfimg
@@ -116,6 +116,7 @@ class TD:
 
     def return_PID_values(self, img, tag, pid_horizontal: pid.PID, pid_vertical: pid.PID):
         # takes in img, tag (the first tag), two PIDs to send final control signals
+        print(img[0])
         horizontal_error = tag.center[0] - self.get_center(img)[0]
         vertical_error = tag.center[1] - self.get_center(img)[1]
         
@@ -127,7 +128,7 @@ class TD:
 
 
     ##Arthur Wrote
-    def interruption(img):
+    def interruption(self, img):
         cv2.imread(img)
         ret, frame= cv2.read()
 
@@ -139,63 +140,63 @@ class TD:
 
 
 
-    def main():
+    # def main():
 
-        vcap=get_video("AprilTagTest.mkv")
-        ret, frame = vcap.read()
+    #     vcap=get_video("AprilTagTest.mkv")
+    #     ret, frame = vcap.read()
 
-        ##Need to fix the while ret to make it work
+    #     ##Need to fix the while ret to make it work
         
-        while ret:
-            try:
-                ##TODO GET IMAGE FROM VIDEO USING GET FRAME
-                frame = get_frame(vcap)
+    #     while ret:
+    #         try:
+    #             ##TODO GET IMAGE FROM VIDEO USING GET FRAME
+    #             frame = get_frame(vcap)
                 
-                ##TODO MAKE THAT FRAME GRAYSCALE
-                gray = make_gray(frame)
+    #             ##TODO MAKE THAT FRAME GRAYSCALE
+    #             gray = make_gray(frame)
 
-                ##TODO DETECT TAGS IN THAT GRAY IMAGE USING GRAYSCALE OUTPUT
-                tags = detect_tags(gray)
+    #             ##TODO DETECT TAGS IN THAT GRAY IMAGE USING GRAYSCALE OUTPUT
+    #             tags = detect_tags(gray)
 
-                ##TODO GET DISTANCE FROM CENTER OF APRIL TAG TO CENTER OF CAMERA USING CAMERA RESOLUTION AND APRILTAG LOCATION
-                distance_tuple = get_distance_from_center(frame, tags[0])  ##ERROR IS THAT IT TAKES IN DETECTION OBJECTS RATHER THAN POINTS FOR GET DISTANCE
+    #             ##TODO GET DISTANCE FROM CENTER OF APRIL TAG TO CENTER OF CAMERA USING CAMERA RESOLUTION AND APRILTAG LOCATION
+    #             distance_tuple = get_distance_from_center(frame, tags[0])  ##ERROR IS THAT IT TAKES IN DETECTION OBJECTS RATHER THAN POINTS FOR GET DISTANCE
 
-                ##TODO DRAW LINE TO CENTER OF APRIL TAG
-                draw_line_center(frame, tags[0])
+    #             ##TODO DRAW LINE TO CENTER OF APRIL TAG
+    #             draw_line_center(frame, tags[0])
 
-                ##TODO GET PERCENTAGES FOR EACH COMPONENT
-                percentage_pair = get_percentage(frame,distance_tuple[0],distance_tuple[1])
+    #             ##TODO GET PERCENTAGES FOR EACH COMPONENT
+    #             percentage_pair = get_percentage(frame,distance_tuple[0],distance_tuple[1])
                 
-                ##TODO DRAW COMPONENT LINES AND  THEIR VALUES:
+    #             ##TODO DRAW COMPONENT LINES AND  THEIR VALUES:
                 
 
-                ##TODO GET X AND Y VALUES
+    #             ##TODO GET X AND Y VALUES
                 
-                ##TODO PUT X_DISTANCE AND Y_DISTANCE INTO PID AND TAKE OUTPUT
-                tag_list = detect_tags(gray)
-                center_list = get_centers_from_tags(tag_list)
-                x_distance, y_distance = get_distance_from_center(frame, center_list[0])
+    #             ##TODO PUT X_DISTANCE AND Y_DISTANCE INTO PID AND TAKE OUTPUT
+    #             tag_list = detect_tags(gray)
+    #             center_list = get_centers_from_tags(tag_list)
+    #             x_distance, y_distance = get_distance_from_center(frame, center_list[0])
         
-                ##TODO GET THAT OUTPUT AND SEND IT INTO TO MAV CONTROLS
+    #             ##TODO GET THAT OUTPUT AND SEND IT INTO TO MAV CONTROLS
 
-                lateral_power, vertical_power = send_PID_control(frame, tags[0], x_distance, y_distance) #WRONG CODE SUCKS ASS
+    #             lateral_power, vertical_power = send_PID_control(frame, tags[0], x_distance, y_distance) #WRONG CODE SUCKS ASS
 
 
 
-                print(f"Lateral Power: {lateral_power}\nVertical Power: {vertical_power} \n it might have moved")
+    #             print(f"Lateral Power: {lateral_power}\nVertical Power: {vertical_power} \n it might have moved")
                 
-                ret, frame= vcap.read()
-                
-
-            ##TODO MAKE THIS A LOOP USING TRY AND EXCEPT FOR KEYBOARD INTERRUPT
-
-            except KeyboardInterrupt:
-                print("Closed reader")
+    #             ret, frame= vcap.read()
                 
 
+    #         ##TODO MAKE THIS A LOOP USING TRY AND EXCEPT FOR KEYBOARD INTERRUPT
 
-    if __name__ == "__main__":
-        main()
+    #         except KeyboardInterrupt:
+    #             print("Closed reader")
+                
+
+
+    # if __name__ == "__main__":
+    #     main()
 
 
     
