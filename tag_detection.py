@@ -201,7 +201,7 @@ class TD:
                                         color=(92, 205, 92),
                                         thickness = 2)
 
-            cv2.line(color_img, tuple(map(int, tag.center)), tuple(map(int, np.array(img.shape[1::-1])/2)), (255, 0, 0), 3.5)
+            cv2.line(color_img, tuple(map(int, tag.center)), tuple(map(int, np.array(img.shape[1::-1])/2)), (255, 0, 0), 3)
             hypotenuse = np.sqrt(pow((tag.center[0] - columns/2), 2) + pow((tag.center[1] - rows/2), 2))
             cv2.putText(color_img, "hyp: " + str(int(hypotenuse)) + "px",
                                     org=(int(columns/2), int((tag_y + rows/2)/2)),
@@ -211,9 +211,9 @@ class TD:
                                     color=(92, 205, 92),
                                     thickness = 2)
             
-            cv2.line(color_img, (int(columns/2), int(rows/2)), (int(tag_x), int(rows/2)), (0, 255, 0), 3.5)
+            cv2.line(color_img, (int(columns/2), int(rows/2)), (int(tag_x), int(rows/2)), (0, 255, 0), 3)
 
-            cv2.line(color_img, (int(tag_x), int(rows/2)), (int(tag_x), int(tag_y)), (0, 255, 0), 3.5)
+            cv2.line(color_img, (int(tag_x), int(rows/2)), (int(tag_x), int(tag_y)), (0, 255, 0), 3)
             return color_img
 
     def return_PID_values(self, img, tag, pid_horizontal: pid.PID, pid_vertical: pid.PID, pid_forward: pid.PID):
@@ -221,11 +221,11 @@ class TD:
         print(img[0])
         horizontal_error = tag.center[0] - self.get_center(img)[0]
         vertical_error = self.get_center(img)[1] - tag.center[1]
-        forward_error = tag.pose_t[2] - 0.75
+        forward_error = tag.pose_t[2] - 1.2
         
         x_output = pid_horizontal.update(horizontal_error)
         y_output = pid_vertical.update(vertical_error)
-        z_output = pid_forward(forward_error)
+        z_output = pid_forward.update(forward_error)
 
         return x_output, y_output, z_output
     

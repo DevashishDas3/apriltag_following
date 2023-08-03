@@ -133,7 +133,7 @@ def _get_frame():
 
                     # NOTE: Here is where tags is taken in and then sent to Robot
                     if len(tags)>0:
-                        lateral_power, vertical_power, forward_power = tagD.return_PID_values(frame, tags[0], pid_horizontal, pid_vertical)
+                        lateral_power, vertical_power, forward_power = tagD.return_PID_values(frame, tags[0], pid_horizontal, pid_vertical, pid_forward)
                         #cv2.imwrite(f"frames/frame__{frame_count:03d}.jpg", frame)
                     else:
                         lateral_power, vertical_power, forward_power = (0, 0, 0)
