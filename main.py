@@ -20,8 +20,8 @@ video = Video()
 
 
 # Create the PID object
-pid_vertical = PID(K_p=.2, K_i=0.0, K_d=0, integral_limit=1)
-pid_horizontal = PID(K_p=.2, K_i=0.0, K_d=0, integral_limit=1)
+pid_vertical = PID(K_p=.12, K_i=0.0, K_d=0.1, integral_limit=1)
+pid_horizontal = PID(K_p=.12, K_i=0.0, K_d=-0.1, integral_limit=1) #K_d numbers tried, -.05
 
 # Create the mavlink connection
 mav_comn = mavutil.mavlink_connection("udpin:0.0.0.0:14550")

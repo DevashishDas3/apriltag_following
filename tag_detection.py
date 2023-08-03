@@ -119,7 +119,7 @@ class TD:
         # takes in img, tag (the first tag), two PIDs to send final control signals
         print(img[0])
         horizontal_error = tag.center[0] - self.get_center(img)[0]
-        vertical_error = tag.center[1] - self.get_center(img)[1]
+        vertical_error = self.get_center(img)[1] - tag.center[1] 
         
         x_output = pid_horizontal.update(horizontal_error)
         y_output = pid_vertical.update(vertical_error)
