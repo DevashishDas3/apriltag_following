@@ -7,7 +7,6 @@ import numpy as np
 from math import isclose
 
 class TD:
-
     def __init__(self):
         self.at_detector = Detector(families='tag36h11',
                     nthreads=1,
@@ -36,6 +35,7 @@ class TD:
     def make_gray(self, frame):
         gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY) # convert to grayscale
         return gray
+
 
 
 
@@ -113,7 +113,109 @@ class TD:
         center= self.get_center(img)
         cv2.draw_line(img,center, tuple(map(int(tag.center))),color,thickness)
         
-        #cv2.line(img, tuple(map(int, tag.center)), tuple(map(int, np.array(img.shape[1::-1])/2)), (255, 0, 0), 3)
+    #     #cv2.line(img, tuple(map(int, tag.center)), tuple(map(int, np.array(img.shape[1::-1])/2)), (255, 0, 0), 3)
+    # def draw_tag_hopefully_better(self, img):
+    #     len(img[0])=height
+    #     len(img)=width
+    #     center=(width)
+
+
+    def draw_tag_descriptions(self, img):
+        gray = self.make_gray(img)
+        
+    
+        cameraMatrix = np.array([ 1060.71, 0, 960, 0, 1060.71, 540, 0, 0, 1]).reshape((3,3))
+        camera_params = ( cameraMatrix[0,0], cameraMatrix[1,1], cameraMatrix[0,2], cameraMatrix[1,2] )
+        tags = self.detect_tags(gray)
+        color_img = img
+
+        for tag in tags:
+            tag_x, tag_y = tag.center
+            for idx in range(len(tag.corners)):
+                cv2.line(color_img, tuple(tag.corners[idx - 1, :].astype(int)), tuple(tag.corners[idx, :].astype(int)), (255, 0, 0), 3)
+            
+            '''
+            cv2.putText(color_img, "Tag ID: #" + str(tag.tag_id),
+                        org=(1400, 1000),
+                        fontFace=cv2.FONT_HERSHEY_DUPLEX,
+                        fontScale=0.5,
+                        color=(0, 0, 255),
+                        thickness =  10)
+            '''
+            
+            rows, columns = color_img.shape[0:2]
+            horizontal_difference = 0
+            vertical_difference = 0
+
+            #horizontal (percentage)
+            if tag.center[0] <= columns/2:
+                horizontal_difference = tag.center[0] - columns/2
+                p_horizontal_difference = horizontal_difference
+                p_horizontal_difference = abs(np.round((horizontal_difference/(columns)) *  100, 2))
+                cv2.putText(color_img, str(p_horizontal_difference) + "%" + " of hor",
+                                    #org=(int(columns/2 - horizontal_difference/2 - 100), int(rows/2)),
+                                    org=(int(tag_x), int(rows/2)),
+                                    fontFace=cv2.FONT_HERSHEY_DUPLEX,
+                                    fontScale=0.5,
+                                    #color=(205, 92, 92),
+                                    color=(92, 205, 92),
+                                    thickness = 2)
+            else:
+                horizontal_difference = tag.center[0] - columns/2
+                p_horizontal_difference = horizontal_difference
+                p_horizontal_difference = abs(np.round((horizontal_difference/(columns)) *  100, 2))
+                cv2.putText(color_img, str(p_horizontal_difference) + "%" + " of hor",
+                                    #org=(int(columns/2 + horizontal_difference/2 + 100), int(rows/2)),
+                                    org=(int(tag_x), int(rows/2)),
+                                    fontFace=cv2.FONT_HERSHEY_DUPLEX,
+                                    fontScale=0.5,
+                                    #color=(205, 92, 92),
+                                    color=(92, 205, 92),
+                                    thickness = 2)
+
+            #vertical (percentage)
+            if tag.center[0] <= rows/2:
+                vertical_difference = rows/2 + tag.center[1]
+                p_vertical_difference = vertical_difference
+                p_vertical_difference = abs(np.round((vertical_difference/(rows)) *  100, 2))
+
+                cv2.putText(color_img, str(p_vertical_difference) + "%" + " of vert",
+                                        #org=(int(columns/2), int(rows/2 + vertical_difference/2 - 200)),
+                                        org=(int(tag_x), int(tag_y)),
+                                        fontFace=cv2.FONT_HERSHEY_DUPLEX,
+                                        fontScale=0.5,
+                                        #color=(205, 92, 92),
+                                        color=(92, 205, 92),
+                                        thickness = 2)
+            else:
+                vertical_difference = tag.center[1] - rows/2
+                p_vertical_difference = vertical_difference
+                p_vertical_difference = abs(np.round((vertical_difference/(rows)) *  100, 2))
+
+                cv2.putText(color_img, str(p_vertical_difference) + "%" + " of vert",
+                                        #org=(int(columns/2), int(rows/2 + vertical_difference/2 - 100)),
+                                        org=(int(tag_x), int(tag_y)),
+                                        fontFace=cv2.FONT_HERSHEY_DUPLEX,
+                                        fontScale=0.5,
+                                        #color=(205, 92, 92),
+                                        color=(92, 205, 92),
+                                        thickness = 2)
+
+            cv2.line(color_img, tuple(map(int, tag.center)), tuple(map(int, np.array(img.shape[1::-1])/2)), (255, 0, 0), 6)
+            hypotenuse = np.sqrt(pow((tag.center[0] - columns/2), 2) + pow((tag.center[1] - rows/2), 2))
+            cv2.putText(color_img, "hyp: " + str(int(hypotenuse)) + "px",
+                                    org=(int(columns/2), int((tag_y + rows/2)/2)),
+                                    fontFace=cv2.FONT_HERSHEY_DUPLEX,
+                                    fontScale=0.5,
+                                    #color=(205, 92, 92),
+                                    color=(92, 205, 92),
+                                    thickness = 2)
+            
+            cv2.line(color_img, (int(columns/2), int(rows/2)), (int(tag_x), int(rows/2)), (0, 255, 0), 6)
+
+            cv2.line(color_img, (int(tag_x), int(rows/2)), (int(tag_x), int(tag_y)), (0, 255, 0), 6)
+            if color_img is not None:
+                return color_img
 
     def return_PID_values(self, img, tag, pid_horizontal: pid.PID, pid_vertical: pid.PID):
         # takes in img, tag (the first tag), two PIDs to send final control signals
