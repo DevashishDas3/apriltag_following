@@ -50,7 +50,7 @@ class BlueROV:
         for i in range(0, 18):
             self.set_rc_channel(i, 1500)
 
-    def set_longitudinal_power(self, value):
+    def set_forward_power(self, value):
         """Set the longitudinal power channel"""
         if value > 100 or value < -100:
             print("Longitudinal power must be between -100 and 100")

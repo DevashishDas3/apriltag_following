@@ -1,8 +1,7 @@
-
+ 
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from pymavlink import mavutil
 import random as rand
 
 def common_member(a, b):

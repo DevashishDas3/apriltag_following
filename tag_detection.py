@@ -201,7 +201,7 @@ class TD:
                                         color=(92, 205, 92),
                                         thickness = 2)
 
-            cv2.line(color_img, tuple(map(int, tag.center)), tuple(map(int, np.array(img.shape[1::-1])/2)), (255, 0, 0), 6)
+            cv2.line(color_img, tuple(map(int, tag.center)), tuple(map(int, np.array(img.shape[1::-1])/2)), (255, 0, 0), 3.5)
             hypotenuse = np.sqrt(pow((tag.center[0] - columns/2), 2) + pow((tag.center[1] - rows/2), 2))
             cv2.putText(color_img, "hyp: " + str(int(hypotenuse)) + "px",
                                     org=(int(columns/2), int((tag_y + rows/2)/2)),
@@ -211,33 +211,38 @@ class TD:
                                     color=(92, 205, 92),
                                     thickness = 2)
             
-            cv2.line(color_img, (int(columns/2), int(rows/2)), (int(tag_x), int(rows/2)), (0, 255, 0), 6)
+            cv2.line(color_img, (int(columns/2), int(rows/2)), (int(tag_x), int(rows/2)), (0, 255, 0), 3.5)
 
-            cv2.line(color_img, (int(tag_x), int(rows/2)), (int(tag_x), int(tag_y)), (0, 255, 0), 6)
-            if color_img is not None:
-                return color_img
+            cv2.line(color_img, (int(tag_x), int(rows/2)), (int(tag_x), int(tag_y)), (0, 255, 0), 3.5)
+            return color_img
 
-    def return_PID_values(self, img, tag, pid_horizontal: pid.PID, pid_vertical: pid.PID):
+    def return_PID_values(self, img, tag, pid_horizontal: pid.PID, pid_vertical: pid.PID, pid_forward: pid.PID):
         # takes in img, tag (the first tag), two PIDs to send final control signals
         print(img[0])
         horizontal_error = tag.center[0] - self.get_center(img)[0]
-        vertical_error = self.get_center(img)[1] - tag.center[1] 
+        vertical_error = self.get_center(img)[1] - tag.center[1]
+        forward_error = tag.pose_t[2] - 0.75
         
         x_output = pid_horizontal.update(horizontal_error)
         y_output = pid_vertical.update(vertical_error)
+        z_output = pid_forward(forward_error)
 
-        return x_output, y_output
+        return x_output, y_output, z_output
+    
+    def tag_area(self, tag):
+        print(tag.corners)
 
 
 
-    ##Arthur Wrote
-    def interruption(self, img):
-        cv2.imread(img)
-        ret, frame= cv2.read()
 
-        while ret: #if key q is pressed interrupt
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+    # ##Arthur Wrote
+    # def interruption(self, img):
+    #     cv2.imread(img)
+    #     ret, frame= cv2.read()
+
+    #     while ret: #if key q is pressed interrupt
+    #         if cv2.waitKey(1) & 0xFF == ord('q'):
+    #             break
     
 
 
@@ -300,7 +305,3 @@ class TD:
 
     # if __name__ == "__main__":
     #     main()
-
-
-    
-    

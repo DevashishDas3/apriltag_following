@@ -35,6 +35,7 @@ frequency = 100 #dev -> for now
 # Create the PID object
 pid_vertical = PID(K_p=.12, K_i=0.0, K_d=0.1, integral_limit=1)
 pid_horizontal = PID(K_p=.12, K_i=0.0, K_d=-0.1, integral_limit=1) #K_d numbers tried, -.05
+pid_forward = PID(K_p=.12, K_i=0.0, K_d=-0.1, integral_limit=1)
 
 # Create the mavlink connection
 mav_comn = mavutil.mavlink_connection("udpin:0.0.0.0:14550")
@@ -47,7 +48,8 @@ frame_available.set()
 
 
 vertical_power = 0  
-lateral_power = 0  
+lateral_power = 0
+forward_power = 0
 
 tagD = td.TD()
 
@@ -55,7 +57,7 @@ tagD = td.TD()
 ###I MOVED THIS FUNCTION UP FROM BELOW GET FRAME BECAUSE SEND RC IS USED IN GET FRAME
 
 def _send_rc():
-    global vertical_power, lateral_power
+    global vertical_power, lateral_power, forward_power
     bluerov.set_rc_channels_to_neutral()
     bluerov.set_rc_channel(9, 1100)
     mav_comn.wait_heartbeat()
@@ -65,6 +67,7 @@ def _send_rc():
             mav_comn.wait_heartbeat()
             bluerov.set_vertical_power(int(vertical_power))
             bluerov.set_lateral_power(int(lateral_power))
+            bluerov.set_forward_power(int(forward_power))
             sleep(0.2)
     except Exception as e:
         print(e)
@@ -76,7 +79,7 @@ def get_center(frame):
     return (len(frame),len(frame[0]))
 
 def _get_frame():
-    global frame, vertical_power, lateral_power
+    global frame, vertical_power, lateral_power, forward_power
 
     while not video.frame_available():
         print("Waiting for frame...")
@@ -107,9 +110,11 @@ def _get_frame():
                     ##TODO input line detection and make sure the parameters are good
                     ##NOTE from Rome: my line detection is good but my lane detection is bad
                     ##NOTE lanes come out as list of lists not list of lists of list
-                    ## IE: lanes=[[lane],[lane]...] 
-                    ## NOT: lanes=[[[lane]],[[lane]]...]
-        
+                    # ## IE: lanes=[[lane],[lane]...] 
+                    # ## NOT: lanes=[[[lane]],[[lane]]...]
+                    # lines= ld.my_detect_lines(frame)
+                    # if lines is None:
+                        
 
 
                     ##TODO input lane detection and ensure that the lane parameters are good.
@@ -128,16 +133,16 @@ def _get_frame():
 
                     # NOTE: Here is where tags is taken in and then sent to Robot
                     if len(tags)>0:
-                        lateral_power, vertical_power = tagD.return_PID_values(frame, tags[0], pid_horizontal, pid_vertical)
-                        cv2.imwrite(f"frames/frame__{frame_count:03d}.jpg", frame)
+                        lateral_power, vertical_power, forward_power = tagD.return_PID_values(frame, tags[0], pid_horizontal, pid_vertical)
+                        #cv2.imwrite(f"frames/frame__{frame_count:03d}.jpg", frame)
                     else:
-                        lateral_power, vertical_power=(0,0)
+                        lateral_power, vertical_power, forward_power = (0, 0, 0)
 
 
 
                     
                     # _send_rc()  #Wanted to put in the variables lateral and vertical here, but they are global and SHOULD be accessed
-                    print(f"Lateral Power: {lateral_power}\nVertical Power: {vertical_power} \n it might have moved")
+                    print(f"Lateral Power: {lateral_power}\nVertical Power: {vertical_power}\nForward Power: {forward_power}\n it might have moved\n")
                    # print(frame.shape) ## Dr.Saad PUT THIS HERE
                     
 
@@ -168,6 +173,6 @@ try:
 
 except KeyboardInterrupt:
     video_thread.join()
-    rc_thread.join()
+    #rc_thread.join()
     bluerov.disarm()
     print("Exiting...")
