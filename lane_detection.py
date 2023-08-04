@@ -5,7 +5,8 @@ import random as rand
 
 
 def gray(img):
-    return cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    return gray
 
 def binary_threshold(blurred_img, lower_bit_intensity = 100, upper_bit_intensity = 180):
     thresh=cv2.threshold(blurred_img, lower_bit_intensity, upper_bit_intensity, cv2.THRESH_BINARY)[1]
@@ -20,9 +21,9 @@ def my_detect_lines(img):
 
     new_gray = gray(img) # SHOULD RETURN NP ARRAY
 
-    blur = blur(new_gray, 41) # SHOULD RETURN NP ARRAY
+    blurs = blur(new_gray, 41) # SHOULD RETURN NP ARRAY
 
-    thresh = binary_threshold(blur)# SHOULD BE NP ARRAY
+    thresh = binary_threshold(blurs)# SHOULD BE NP ARRAY
 
     new_thresh = thresh[int(len(thresh)/2):, :] ### CODE DOES WORK, Dr.Saad WROTE
 
@@ -208,5 +209,5 @@ def get_distance_from_lane(lane_center = [0, 0], img = 5):
         return 0
     else:
         img_center = len(img)[1]/2
-        d = np.abs(img-lane_center[0])
+        d = img-lane_center[0]
         return d
