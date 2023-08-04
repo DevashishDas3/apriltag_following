@@ -35,7 +35,7 @@ frequency = 100 #dev -> for now
 # Create the PID object
 pid_vertical = PID(K_p=.12, K_i=0.0, K_d=0.1, integral_limit=1)
 pid_horizontal = PID(K_p=.12, K_i=0.0, K_d=-0.1, integral_limit=1) #K_d numbers tried, -.05
-pid_forward = PID(K_p=.12, K_i=0.0, K_d=-0.1, integral_limit=1)
+pid_forward = PID(K_p=.8, K_i=0.0, K_d=-0.1, integral_limit=1)
 
 # Create the mavlink connection
 mav_comn = mavutil.mavlink_connection("udpin:0.0.0.0:14550")
@@ -65,9 +65,9 @@ def _send_rc():
         while True:
             bluerov.arm()
             mav_comn.wait_heartbeat()
-            bluerov.set_vertical_power(int(vertical_power))
-            bluerov.set_lateral_power(int(lateral_power))
-            bluerov.set_forward_power(int(forward_power))
+            bluerov.set_vertical_power(int(vertical_power/10))
+            bluerov.set_lateral_power(int(lateral_power/10))
+            bluerov.set_forward_power(int(forward_power/10))
             sleep(0.2)
     except Exception as e:
         print(e)
@@ -188,7 +188,7 @@ def _get_frame():
 
 
                     # NOTE: Here is where tags is taken in and then sent to Robot
-                    if tags == None or len(tags) == 0:
+                    if tags is None or len(tags) == 0:
                         lateral_power, vertical_power, forward_power = tagD.return_PID_values(frame, tags[0], pid_horizontal, pid_vertical, pid_forward)
                         cv2.imwrite(f"frames/framehaha{frame_count:03d}.jpg", frame)
                     
@@ -198,6 +198,7 @@ def _get_frame():
                     
                     # _send_rc()  #Wanted to put in the variables lateral and vertical here, but they are global and SHOULD be accessed
                     print(f"Lateral Power: {lateral_power}\nVertical Power: {vertical_power}\nForward Power: {forward_power}\n it might have moved\n")
+                    print(f"Forward Translation: {tags[0].pose_t[2]}\nLateral Translation: {tags[0].pose_t[0]}\nVertical Translation: {tags[0].pose_t[1]}")
                    # print(frame.shape) ## Dr.Saad PUT THIS HERE
 
                    
@@ -209,7 +210,6 @@ def _get_frame():
 
 
     except KeyboardInterrupt:
-        out.release()
         return
 
 
@@ -222,8 +222,8 @@ video_thread.start()
 
 
 # Start the RC thread
-# rc_thread = Thread(target=_send_rc)
-# rc_thread.start()
+rc_thread = Thread(target=_send_rc)
+rc_thread.start()
 
 
 # Main loop
