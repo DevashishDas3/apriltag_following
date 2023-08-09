@@ -8,7 +8,7 @@ class BlueROV:
     def __init__(self, mav_connection):
         self.mav_connection = mav_connection
         self.mav_connection.wait_heartbeat()
-        self.mav_connection.set_mode("MANUAL")
+        self.mav_connection.set_mode("manual")
         self.mav_connection.arducopter_arm()
         self.mav_connection.motors_armed_wait()
         self.state = "armed"
@@ -50,7 +50,7 @@ class BlueROV:
         for i in range(0, 18):
             self.set_rc_channel(i, 1500)
 
-    def set_longitudinal_power(self, value):
+    def set_forward_power(self, value):
         """Set the longitudinal power channel"""
         if value > 100 or value < -100:
             print("Longitudinal power must be between -100 and 100")
@@ -78,7 +78,7 @@ class BlueROV:
             value = np.clip(value, -100, 100)
 
         pwm_value = 1500 + value * 4
-        self.set_rc_channel(4, pwm_value)
+        self.set_rc_channel(3, pwm_value)
 
     def set_yaw_rate_power(self, value):
         """Set the yaw rate power channel"""
@@ -88,4 +88,4 @@ class BlueROV:
             value = np.clip(value, -100, 100)
 
         pwm_value = 1500 + value * 4
-        self.set_rc_channel(3, pwm_value)
+        self.set_rc_channel(4, pwm_value)
